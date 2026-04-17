@@ -3,8 +3,7 @@ import requests
 
 app = Flask(__name__)
 
-# Paste your Apify token here
-APIFY_KEY = "apify_api_NVzuxbtltL8Oc4Zkkd"
+APIFY_KEY = os.environ.get("APIFY_KEY")
 
 @app.route("/prices")
 def prices():
@@ -25,7 +24,11 @@ def prices():
 
     # If something went wrong
     if response.status_code != 200:
-        return jsonify({"error": "Could not get prices"}), 500
+    return jsonify({
+        "error": "Could not get prices",
+        "status": response.status_code,
+        "details": response.text
+    }), 500
 
     # Go through each result and pull out what we need
     results = []
