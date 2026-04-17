@@ -24,11 +24,11 @@ def prices():
 
     # If something went wrong
     if response.status_code != 200:
-    return jsonify({
-        "error": "Could not get prices",
-        "status": response.status_code,
-        "details": response.text
-    }), 500
+        return jsonify({
+            "error": "Could not get prices",
+            "status": response.status_code,
+            "details": response.text
+        }), 500
 
     # Go through each result and pull out what we need
     results = []
