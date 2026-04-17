@@ -1,43 +1,52 @@
 from flask import Flask, jsonify, request
 import requests
-from bs4 import BeautifulSoup
 
 app = Flask(__name__)
 
-def scrape_price(url, css_selector):
-    try:
-        headers = {"User-Agent": "Mozilla/5.0"}
-        r = requests.get(url, headers=headers, timeout=8)
-        soup = BeautifulSoup(r.text, "html.parser")
-        el = soup.select_one(css_selector)
-        return el.get_text(strip=True) if el else "N/A"
-    except:
-        return "Error"
+# Paste your Apify token here
+APIFY_KEY = "apify_api_NVzuxbtltL8Oc4Zkkd"
 
 @app.route("/prices")
 def prices():
+    # Get the product name from the request
     product = request.args.get("product", "")
-    
-    # ADD YOUR SHOPS HERE — find the CSS selector by right-clicking
-    # a price on the shop's website → Inspect → copy the selector
-    shops = [
-        {
-            "name": "Checkers",
-            "url": f"https://www.checkers.co.za/search?q={product}",
-            "selector": ".price"   # <-- update this per shop
-        },
-        {
-            "name": "Pick n Pay",
-            "url": f"https://www.pnp.co.za/pnpstorefront/pnp/en/search?q={product}",
-            "selector": ".priceVal"
-        },
-    ]
-    
+
+    # Ask Apify Google Shopping for prices
+    response = requests.post(
+        "https://api.apify.com/v2/acts/epctex~google-shopping-scraper/run-sync-get-dataset-items",
+        params={"token": APIFY_KEY},
+        json={
+            "queries": [product],
+            "maxResults": 10,
+            "countryCode": "ZA",
+            "languageCode": "en",
+        }
+    )
+
+    # If something went wrong
+    if response.status_code != 200:
+        return jsonify({"error": "Could not get prices"}), 500
+
+    # Go through each result and pull out what we need
     results = []
-    for shop in shops:
-        price = scrape_price(shop["url"], shop["selector"])
-        results.append({"shop": shop["name"], "price": price, "url": shop["url"]})
-    
+    for item in response.json():
+        results.append({
+            "shop": item.get("seller", "Unknown"),
+            "price": item.get("price", "N/A"),
+            "original_price": item.get("originalPrice", "N/A"),
+            "discount": item.get("discount", "N/A"),
+            "title": item.get("title", ""),
+            "url": item.get("url", ""),
+        })
+
+    # Sort results cheapest first
+    def get_price(x):
+        try:
+            return float(str(x["price"]).replace("R","").replace(",","").strip())
+        except:
+            return 9999
+    results.sort(key=get_price)
+
     return jsonify(results)
 
 if __name__ == "__main__":
