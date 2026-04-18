@@ -37,6 +37,7 @@ def prices():
         results.append({
             "shop": item.get("source", "Unknown"),
             "title": item.get("title", ""),
+            "price": = item.get("price", "N/A")
         })
 
     def get_price(x):
