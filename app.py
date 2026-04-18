@@ -1,6 +1,7 @@
-from flask import Flask, jsonify, request
+from flask import Flask, request
 import requests
 import os
+import json
 
 app = Flask(__name__)
 
@@ -23,11 +24,11 @@ def prices():
     )
 
     if response.status_code != 200:
-        return jsonify({
+        return json.dumps({
             "error": "Could not get prices",
             "status": response.status_code,
             "details": response.text
-        }), 500
+        }, indent=4), 500
 
     data = response.json()
     shopping_results = data.get("shopping_results", [])
@@ -36,18 +37,19 @@ def prices():
     for item in shopping_results:
         results.append({
             "shop": item.get("source", "Unknown"),
+            "price": item.get("price", "N/A"),
             "title": item.get("title", ""),
-            "price": item.get("price", "N/A")
+            "url": item.get("link", ""),
         })
 
     def get_price(x):
         try:
-            return float(str(x["price"]).replace("R","").replace(",","").strip())
+            return float(str(x["price"]).replace("R","").replace(",","").replace(" ","").strip())
         except:
             return 9999
 
     results.sort(key=get_price)
-    
+
     # Build a neat readable output
     output = "=" * 40 + "\n"
     output += f"  PRICE RESULTS FOR: {product.upper()}\n"
@@ -61,8 +63,8 @@ def prices():
         if item['url']:
             output += f"  Link:  {item['url']}\n"
         output += "-" * 40 + "\n"
-    
-    return jsonify(results)
+
+    return output, 200, {"Content-Type": "text/plain"}
 
 if __name__ == "__main__":
     app.run()
