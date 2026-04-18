@@ -47,6 +47,21 @@ def prices():
             return 9999
 
     results.sort(key=get_price)
+    
+    # Build a neat readable output
+    output = "=" * 40 + "\n"
+    output += f"  PRICE RESULTS FOR: {product.upper()}\n"
+    output += "=" * 40 + "\n\n"
+
+    for i, item in enumerate(results, 1):
+        output += f"#{i}\n"
+        output += f"  Shop:  {item['shop']}\n"
+        output += f"  Item:  {item['title']}\n"
+        output += f"  Price: {item['price']}\n"
+        if item['url']:
+            output += f"  Link:  {item['url']}\n"
+        output += "-" * 40 + "\n"
+    
     return jsonify(results)
 
 if __name__ == "__main__":
