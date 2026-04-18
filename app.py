@@ -51,10 +51,6 @@ def prices():
     results.sort(key=get_price)
 
     # Build a neat readable output
-    output = "=" * 40 + "\n"
-    output += f"  PRICE RESULTS FOR: {product.upper()}\n"
-    output += "=" * 40 + "\n\n"
-
     for i, item in enumerate(results, 1):
         output += f"#{i}\n"
         output += f"  Shop:  {item['shop']}\n"
