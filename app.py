@@ -34,12 +34,11 @@ def prices():
 
     results = []
     for item in shopping_results:
+        "shop": item.get("source", "Unknown"),
+        "price": item.get("price", "N/A"),
+        "title": item.get("title", ""),
         results.append({
-            "shop": item.get("source", "Unknown"),
-            "price": item.get("price", "N/A"),
-            "title": item.get("title", ""),
-            results.append({
-                "line": f"{shop} | {title} | {price}"
+            "line": f"{shop} | {title} | {price}"
         })
 
     def get_price(x):
