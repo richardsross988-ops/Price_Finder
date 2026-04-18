@@ -37,10 +37,7 @@ def prices():
         results.append({
             "shop": item.get("source", "Unknown"),
             "price": item.get("price", "N/A"),
-            "original_price": item.get("old_price", "N/A"),
-            "discount": item.get("tag", "N/A"),
             "title": item.get("title", ""),
-            "url": item.get("link", ""),
         })
 
     def get_price(x):
