@@ -38,6 +38,8 @@ def prices():
             "shop": item.get("source", "Unknown"),
             "price": item.get("price", "N/A"),
             "title": item.get("title", ""),
+            results.append({
+                "line": f"{shop} | {title} | {price}"
         })
 
     def get_price(x):
