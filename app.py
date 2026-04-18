@@ -4,26 +4,24 @@ import os
 
 app = Flask(__name__)
 
-APIFY_KEY = os.environ.get("APIFY_KEY")
+SERPAPI_KEY = os.environ.get("SERPAPI_KEY")
 
 @app.route("/prices")
 def prices():
-    # Get the product name from the request
     product = request.args.get("product", "")
 
-    # Ask Apify Google Shopping for prices
-    response = requests.post(
-        "https://api.apify.com/v2/acts/epctex~google-shopping-scraper/run-sync-get-dataset-items",
-        params={"token": APIFY_KEY},
-        json={
-            "queries": [product],
-            "maxResults": 10,
-            "countryCode": "ZA",
-            "languageCode": "en",
+    response = requests.get(
+        "https://serpapi.com/search",
+        params={
+            "engine": "google_shopping",
+            "q": product,
+            "api_key": SERPAPI_KEY,
+            "gl": "za",
+            "hl": "en",
+            "location": "South Africa",
         }
     )
 
-    # If something went wrong
     if response.status_code != 200:
         return jsonify({
             "error": "Could not get prices",
@@ -31,26 +29,27 @@ def prices():
             "details": response.text
         }), 500
 
-    # Go through each result and pull out what we need
+    data = response.json()
+    shopping_results = data.get("shopping_results", [])
+
     results = []
-    for item in response.json():
+    for item in shopping_results:
         results.append({
-            "shop": item.get("seller", "Unknown"),
+            "shop": item.get("source", "Unknown"),
             "price": item.get("price", "N/A"),
-            "original_price": item.get("originalPrice", "N/A"),
-            "discount": item.get("discount", "N/A"),
+            "original_price": item.get("old_price", "N/A"),
+            "discount": item.get("tag", "N/A"),
             "title": item.get("title", ""),
-            "url": item.get("url", ""),
+            "url": item.get("link", ""),
         })
 
-    # Sort results cheapest first
     def get_price(x):
         try:
             return float(str(x["price"]).replace("R","").replace(",","").strip())
         except:
             return 9999
-    results.sort(key=get_price)
 
+    results.sort(key=get_price)
     return jsonify(results)
 
 if __name__ == "__main__":
